@@ -74,33 +74,39 @@ if archivo_excel:
     # Filtro de modelos a mostrar
     modelos = st.sidebar.multiselect("Selecciona modelos a mostrar", ["Histórico", "SARIMA", "ARIMA", "X13/Fallback"], default=["Histórico", "SARIMA", "ARIMA"])
 
+ # Fechas válidas presentes en forecast
+    fechas_sarima_validas = forecast_mean.index.intersection(future_index_filtrado)
+    fechas_arima_validas = forecast_arima_mean.index.intersection(future_index_filtrado)
+    fechas_x13_validas = forecast_x13.index.intersection(future_index_filtrado)
+
     # Gráfica
     fig, ax = plt.subplots(figsize=(14, 6))
 
     if "Histórico" in modelos:
         ax.plot(serie, label="Histórico", color="black")
 
-    if "SARIMA" in modelos:
-        ax.plot(forecast_mean.loc[future_index_filtrado], label="Proyección SARIMA", color="blue")
-        ax.fill_between(forecast_ci.loc[future_index_filtrado].index,
-                        forecast_ci.loc[future_index_filtrado].iloc[:, 0],
-                        forecast_ci.loc[future_index_filtrado].iloc[:, 1],
+    if "SARIMA" in modelos and not fechas_sarima_validas.empty:
+        ax.plot(forecast_mean.loc[fechas_sarima_validas], label="Proyección SARIMA", color="blue")
+        ax.fill_between(forecast_ci.loc[fechas_sarima_validas].index,
+                        forecast_ci.loc[fechas_sarima_validas].iloc[:, 0],
+                        forecast_ci.loc[fechas_sarima_validas].iloc[:, 1],
                         color="blue", alpha=0.2)
 
-    if "ARIMA" in modelos:
-        ax.plot(forecast_arima_mean.loc[future_index_filtrado], label="Proyección ARIMA", color="orange")
-        ax.fill_between(forecast_arima_ci.loc[future_index_filtrado].index,
-                        forecast_arima_ci.loc[future_index_filtrado].iloc[:, 0],
-                        forecast_arima_ci.loc[future_index_filtrado].iloc[:, 1],
+    if "ARIMA" in modelos and not fechas_arima_validas.empty:
+        ax.plot(forecast_arima_mean.loc[fechas_arima_validas], label="Proyección ARIMA", color="orange")
+        ax.fill_between(forecast_arima_ci.loc[fechas_arima_validas].index,
+                        forecast_arima_ci.loc[fechas_arima_validas].iloc[:, 0],
+                        forecast_arima_ci.loc[fechas_arima_validas].iloc[:, 1],
                         color="orange", alpha=0.2)
 
-    if "X13/Fallback" in modelos:
-        ax.plot(forecast_x13.loc[future_index_filtrado], label="Proyección X13", color="green")
+    if "X13/Fallback" in modelos and not fechas_x13_validas.empty:
+        ax.plot(forecast_x13.loc[fechas_x13_validas], label="Proyección X13", color="green")
 
     ax.legend()
     ax.grid(True)
     ax.set_title(f"Proyecciones {rango_anios[0]} - {rango_anios[1]}")
     st.pyplot(fig)
+
 
     # Mostrar tabla resumen
     st.subheader("Resumen de proyecciones por mes")
