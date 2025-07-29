@@ -21,8 +21,8 @@ st.title("Proyecciones de Asegurados IMSS - Jalisco")
 archivo_excel = st.file_uploader("Carga el archivo de asegurados históricos", type=["xlsx"])
 
 if archivo_excel:
-    df = pd.read_excel(archivo_excel, sheet_name="Historico")
-    df["fecha"] = pd.to_datetime(df["fecha"])
+    df = pd.read_excel(archivo_excel, sheet_name="ta_total")
+    df["fecha"] = pd.to_datetime(df["Mes"])
     df.set_index("fecha", inplace=True)
     serie = df["ta_total_jalisco"]
 
