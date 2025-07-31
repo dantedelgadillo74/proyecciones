@@ -106,7 +106,7 @@ if url_excel:
         if "Histórico" in modelos:
             ax.plot(serie, label="Histórico", color="black")
             if mostrar_etiquetas:
-                for i in serie.index:
+                for i in serie.index[::24]:
                     ax.text(i, serie[i], f"{serie[i]:,.0f}", fontsize=8, color="black", ha='center')
         if "SARIMA" in modelos:
             ax.plot(forecast_mean, label="SARIMA", color="blue")
@@ -115,7 +115,7 @@ if url_excel:
                             forecast_ci.iloc[:, 1],
                             color="blue", alpha=0.2)
             if mostrar_etiquetas:
-                for i in forecast_mean.index:
+                for i in forecast_mean.index[::24]:
                     ax.text(i, forecast_mean[i], f"{forecast_mean[i]:,.0f}", fontsize=8, color="blue", ha='center')
         if "ARIMA" in modelos:
             ax.plot(forecast_arima_mean, label="ARIMA", color="orange")
@@ -124,12 +124,12 @@ if url_excel:
                             forecast_arima_ci.iloc[:, 1],
                             color="orange", alpha=0.2)
             if mostrar_etiquetas:
-                for i in forecast_arima_mean.index:
+                for i in forecast_arima_mean.index[::24]:
                     ax.text(i, forecast_arima_mean[i], f"{forecast_arima_mean[i]:,.0f}", fontsize=8, color="orange", ha='center')
         if "X13/Fallback" in modelos:
             ax.plot(forecast_x13, label="X13 proxy", color="green")
             if mostrar_etiquetas:
-                for i in forecast_x13.index:
+                for i in forecast_x13.index[::24]:
                     ax.text(i, forecast_x13[i], f"{forecast_x13[i]:,.0f}", fontsize=8, color="green", ha='center')
 
         ax.set_title(f"Proyecciones IMSS – Jalisco ({rango_anios[0]}–{rango_anios[1]})")
