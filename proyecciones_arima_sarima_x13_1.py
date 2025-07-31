@@ -21,7 +21,7 @@ st.title("Proyecciones de Asegurados IMSS - Jalisco")
 # --- URL raw de GitHub al archivo histórico ---
 url_excel = st.sidebar.text_input(
     "URL raw del archivo Excel en GitHub",
-    value="https://raw.githubusercontent.com/tu_usuario/tu_repo/rama/Historico_ta_Jalisco_x_Mes.xlsx"
+    value="https://github.com/dantedelgadillo74/proyecciones/raw/refs/heads/main/Historico_ta_Jalisco_x_Mes.xlsx"  
 )
 
 if url_excel:
