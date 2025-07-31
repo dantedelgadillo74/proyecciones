@@ -123,17 +123,33 @@ if url_excel:
         ax.grid(True)
         st.pyplot(fig)
 
-        # Tabla resumen
-        st.subheader("Resumen mensual de proyecciones")
-        st.dataframe(
-            df_filtrado.style.format({
-                "proyeccion_sarima": "{:,.0f}",
-                "proyeccion_x13": "{:,.0f}",
-                "proyeccion_arima": "{:,.0f}",
-                "%_ARIMA_vs_SARIMA": "{:.2f}%",
-                "%_X13_vs_SARIMA": "{:.2f}%"
-            })
+        # Tabla con opción de mostrar/ocultar
+        with st.expander("▶ Mostrar/Ocultar datos detallados por año"):
+            st.subheader("Resumen mensual de proyecciones")
+            st.dataframe(
+                df_filtrado.style.format({
+                    "proyeccion_sarima": "{:,.0f}",
+                    "proyeccion_x13": "{:,.0f}",
+                    "proyeccion_arima": "{:,.0f}",
+                    "%_ARIMA_vs_SARIMA": "{:.2f}%",
+                    "%_X13_vs_SARIMA": "{:.2f}%"
+                })
+            )
+
+        # Descarga de datos
+        st.subheader("Descargar datos")
+        excel_output = BytesIO()
+        with pd.ExcelWriter(excel_output, engine="xlsxwriter") as writer:
+            df.to_excel(writer, sheet_name="Histórico")
+            df_resumen.to_excel(writer, sheet_name="Proyecciones")
+        excel_output.seek(0)
+        st.download_button(
+            label="📥 Descargar Excel con histórico y proyecciones",
+            data=excel_output,
+            file_name="Proyecciones_IMSS_Jalisco.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         )
+
     except Exception as e:
         st.error(f"Error al cargar o procesar el archivo: {e}")
 else:
