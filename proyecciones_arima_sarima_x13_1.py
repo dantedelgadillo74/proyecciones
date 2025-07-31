@@ -13,6 +13,7 @@ from statsmodels.tsa.statespace.sarimax import SARIMAX
 from datetime import datetime
 import requests
 from io import BytesIO
+import base64
 
 # Configuración de la página
 st.set_page_config(layout="wide")
@@ -23,6 +24,8 @@ url_excel = st.sidebar.text_input(
     "URL raw del archivo Excel en GitHub",
     value="https://github.com/dantedelgadillo74/proyecciones/raw/refs/heads/main/Historico_ta_Jalisco_x_Mes.xlsx"  
 )
+
+mostrar_etiquetas = st.sidebar.checkbox("Mostrar etiquetas en gráfica", value=True)
 
 if url_excel:
     try:
@@ -102,20 +105,32 @@ if url_excel:
         fig, ax = plt.subplots(figsize=(14, 6))
         if "Histórico" in modelos:
             ax.plot(serie, label="Histórico", color="black")
+            if mostrar_etiquetas:
+                for i in serie.index:
+                    ax.text(i, serie[i], f"{serie[i]:,.0f}", fontsize=8, color="black", ha='center')
         if "SARIMA" in modelos:
             ax.plot(forecast_mean, label="SARIMA", color="blue")
             ax.fill_between(forecast_ci.index,
                             forecast_ci.iloc[:, 0],
                             forecast_ci.iloc[:, 1],
                             color="blue", alpha=0.2)
+            if mostrar_etiquetas:
+                for i in forecast_mean.index:
+                    ax.text(i, forecast_mean[i], f"{forecast_mean[i]:,.0f}", fontsize=8, color="blue", ha='center')
         if "ARIMA" in modelos:
             ax.plot(forecast_arima_mean, label="ARIMA", color="orange")
             ax.fill_between(forecast_arima_ci.index,
                             forecast_arima_ci.iloc[:, 0],
                             forecast_arima_ci.iloc[:, 1],
                             color="orange", alpha=0.2)
+            if mostrar_etiquetas:
+                for i in forecast_arima_mean.index:
+                    ax.text(i, forecast_arima_mean[i], f"{forecast_arima_mean[i]:,.0f}", fontsize=8, color="orange", ha='center')
         if "X13/Fallback" in modelos:
             ax.plot(forecast_x13, label="X13 proxy", color="green")
+            if mostrar_etiquetas:
+                for i in forecast_x13.index:
+                    ax.text(i, forecast_x13[i], f"{forecast_x13[i]:,.0f}", fontsize=8, color="green", ha='center')
 
         ax.set_title(f"Proyecciones IMSS – Jalisco ({rango_anios[0]}–{rango_anios[1]})")
         ax.set_ylabel("Asegurados")
@@ -123,30 +138,37 @@ if url_excel:
         ax.grid(True)
         st.pyplot(fig)
 
-        # Tabla con opción de mostrar/ocultar
-        with st.expander("▶ Mostrar/Ocultar datos detallados por año"):
-            st.subheader("Resumen mensual de proyecciones")
-            st.dataframe(
-                df_filtrado.style.format({
-                    "proyeccion_sarima": "{:,.0f}",
-                    "proyeccion_x13": "{:,.0f}",
-                    "proyeccion_arima": "{:,.0f}",
-                    "%_ARIMA_vs_SARIMA": "{:.2f}%",
-                    "%_X13_vs_SARIMA": "{:.2f}%"
-                })
-            )
+        # Botón de exportación
+        exportar = st.sidebar.checkbox("Exportar gráfica como imagen")
+        if exportar:
+            buffer = BytesIO()
+            fig.savefig(buffer, format="png")
+            buffer.seek(0)
+            b64 = base64.b64encode(buffer.read()).decode()
+            href = f'<a href="data:image/png;base64,{b64}" download="proyeccion_jalisco.png">Descargar imagen</a>'
+            st.markdown(href, unsafe_allow_html=True)
 
-        # Descarga de datos
-        st.subheader("Descargar datos")
-        excel_output = BytesIO()
-        with pd.ExcelWriter(excel_output, engine="xlsxwriter") as writer:
-            df.to_excel(writer, sheet_name="Histórico")
-            df_resumen.to_excel(writer, sheet_name="Proyecciones")
-        excel_output.seek(0)
+        # Tabla resumen
+        st.subheader("Resumen mensual de proyecciones")
+        st.dataframe(
+            df_filtrado.style.format({
+                "proyeccion_sarima": "{:,.0f}",
+                "proyeccion_x13": "{:,.0f}",
+                "proyeccion_arima": "{:,.0f}",
+                "%_ARIMA_vs_SARIMA": "{:.2f}%",
+                "%_X13_vs_SARIMA": "{:.2f}%"
+            })
+        )
+
+        # Botón para descargar proyecciones en Excel
+        output = BytesIO()
+        with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+            df_resumen.to_excel(writer, sheet_name='Proyecciones', index=False)
+        output.seek(0)
         st.download_button(
-            label="📥 Descargar Excel con histórico y proyecciones",
-            data=excel_output,
-            file_name="Proyecciones_IMSS_Jalisco.xlsx",
+            label="Descargar proyecciones en Excel",
+            data=output,
+            file_name="proyecciones_jalisco.xlsx",
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         )
 
